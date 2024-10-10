@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -18,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author ADMIN
  */
-public class SaveServlet extends HttpServlet {
+public class DeleteServlet extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -33,37 +34,24 @@ public class SaveServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
-            String uname=request.getParameter("uname");
-            String upass=request.getParameter("upass");
-            String email=request.getParameter("email");
-            String country=request.getParameter("country");
-            
-            Connection conn;
-            PreparedStatement ps;
-            
+            String id = request.getParameter("id");
+            Connection conn = null;
+            PreparedStatement ps = null;
             try {
                 conn=Database.getConnection();
-                ps=conn.prepareStatement("insert into users(name, password, email, country) values(?,?,?,?)");
-                
-                ps.setString(1,uname);
-                ps.setString(2,upass);
-                ps.setString(3,email);
-                ps.setString(4,country);
-                
-                int kq=ps.executeUpdate();
-                
-                if(kq>0){
-                    out.println("<h2> Record saved successfully</h2>");
-                }else{
-                    out.println("<h2> Record save fail</h2>");
+                ps = conn.prepareStatement("delete from users where id=" + id);
+                int kq = ps.executeUpdate();
+                if (kq > 0) {
+                    out.println("<h2>Xoá user thành công</h2>");
+                } else {
+                    out.println("<h2>Xoá user thất bại</h2>");
                 }
                 conn.close();
             } catch (Exception e) {
                 System.out.println("Loi: " + e.toString());
-                out.println("<h2>Record save fail</h2>");
+                out.println("<h2>Xoá user thất bại</h2>");
             }
-            request.getRequestDispatcher("index.html").include(request, response);
-            
+            request.getRequestDispatcher("ViewServlet").include(request, response);
         }
     }
 

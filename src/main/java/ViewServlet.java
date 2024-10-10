@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -18,7 +19,7 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author ADMIN
  */
-public class SaveServlet extends HttpServlet {
+public class ViewServlet extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
@@ -33,37 +34,41 @@ public class SaveServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
-            String uname=request.getParameter("uname");
-            String upass=request.getParameter("upass");
-            String email=request.getParameter("email");
-            String country=request.getParameter("country");
-            
-            Connection conn;
-            PreparedStatement ps;
-            
+            Connection conn = null;
+            PreparedStatement ps = null;
+            ResultSet rs = null;
+            String kq = "";
             try {
                 conn=Database.getConnection();
-                ps=conn.prepareStatement("insert into users(name, password, email, country) values(?,?,?,?)");
-                
-                ps.setString(1,uname);
-                ps.setString(2,upass);
-                ps.setString(3,email);
-                ps.setString(4,country);
-                
-                int kq=ps.executeUpdate();
-                
-                if(kq>0){
-                    out.println("<h2> Record saved successfully</h2>");
-                }else{
-                    out.println("<h2> Record save fail</h2>");
+                ps = conn.prepareStatement("select * from users");
+
+                rs = ps.executeQuery();
+
+                kq += "<table border=1>";
+                kq += "<tr>";
+                kq += "<td>Id</td><td>Name</td><td>Password</td><td>Email</td><td>Country</td><td>Edit</td><td>Delete</td>";
+                kq += "<tr>";
+                while (rs.next()) {
+                    kq += "<tr>";
+              kq += "<td>" + rs.getInt("id") + "</td><td>"
+              + rs.getString("name") + "</td><td>" + rs.getString(3) + "</td><td>"
+              + rs.getString(4) + "</td><td>" + rs.getString(5) + "</td><td>"
+              + "<a href=EditServlet?id=" + rs.getInt(1) + ">Edit</a>"
+              + "</td><td><a href=DeleteServlet?id=" + rs.getInt(1) + " onclick=\"return confirm('Bạn có chắc chắn xoá không?')\">Delete</a></td>";
+               kq += "</tr>";
                 }
+                kq += "</table>";
                 conn.close();
             } catch (Exception e) {
                 System.out.println("Loi: " + e.toString());
-                out.println("<h2>Record save fail</h2>");
             }
-            request.getRequestDispatcher("index.html").include(request, response);
-            
+            out.println("<html>");
+            out.println("<body>");
+            out.println("<a href='index.html'>Add New User</a>");
+            out.println("<h1>Users List</h1>");
+            out.println(kq);
+            out.println("</body>");
+            out.println("</html>");
         }
     }
 
